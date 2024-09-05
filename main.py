@@ -9,14 +9,22 @@ running = True
 font_statistics = pygame.font.SysFont("Arial", 35)
 wow_dog_image = pygame.image.load("wow-piesel-sprite-1-120-105.png").convert_alpha()
 background = pygame.image.load("wow-game-background-1-2000-720.png").convert()
-player_position_x = screen.get_width() / 2 - wow_dog_image.get_width() / 2 - 300
-player_position_y = screen.get_height() - wow_dog_image.get_height() - 40
+start_player_position_x = screen.get_width() / 2 - wow_dog_image.get_width() / 2 - 300
+start_player_position_y = screen.get_height() - wow_dog_image.get_height() - 40
 dog_speed = 1
-background_start_position = 0
+start_background_position = 0
 background_scroll_speed = 3
+jump = False
+fall = False
+start_jump_speed = 15
+jump_power = 8
+gravity = jump_power / 16
+max_jump_height = 50 * jump_power
 
-background_position = background_start_position
-
+player_position_x = start_player_position_x
+player_position_y = start_player_position_y
+background_position = start_background_position
+jump_speed = start_jump_speed
 
 while running:
     for event in pygame.event.get():
@@ -26,6 +34,9 @@ while running:
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_s:
                 dog_speed += 1
+            if event.key == pygame.K_SPACE and not jump and not fall:
+                jump = True
+                jump_speed = start_jump_speed
 
     # screen.fill("gray")
     # pygame.draw.circle(screen, "red", (player_position_x, player_position_y), 100)
@@ -38,23 +49,41 @@ while running:
         player_position_x -= 5 * dog_speed
     if keys[pygame.K_RIGHT]:
         player_position_x += 5 * dog_speed
-    if keys[pygame.K_UP]:
-        player_position_y -= 5 * dog_speed
-    if keys[pygame.K_DOWN]:
-        player_position_y += 5 * dog_speed
+    # if keys[pygame.K_UP]:
+    #     player_position_y -= 5 * dog_speed
+    # if keys[pygame.K_DOWN]:
+    #     player_position_y += 5 * dog_speed
     if dog_speed == 5:
         dog_speed = 1
+
+    if jump and jump_speed > 0:
+        if player_position_y >= max_jump_height:
+            player_position_y -= jump_speed
+            jump_speed -= gravity
+        else:
+            jump = False
+            fall = True
+            jump_speed = 0
+
+    if fall:
+        if player_position_y <= start_player_position_y:
+            player_position_y += jump_speed
+            jump_speed += gravity
+        else:
+            fall = False
 
     # print(speed)
     print(player_position_x)
     print(player_position_y)
     # print(screen.get_width()/2)
     # print(screen.get_height()/2)
+    # print(jump, fall)
+    # print(jump_speed, gravity)
 
     background_width = background.get_width()
     background_position -= background_scroll_speed
     if abs(background_position) >= background_width:
-        background_position = background_start_position
+        background_position = start_background_position
 
     screen.blit(background, (background_position, 0))
     screen.blit(background, (background_position + background_width, 0))
